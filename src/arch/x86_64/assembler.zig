@@ -57,6 +57,54 @@ pub const Assembler = struct {
         }
     }
 
+    /// TODO: add support for reg32, reg16, reg8
+    pub fn or_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
+        if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
+            return error.UnequalRegisterWidth;
+        }
+        switch (dst) {
+            .reg64 => {
+                try self.or_reg64_reg64(dst.reg64, src.reg64);
+            },
+        }
+    }
+
+    /// TODO: add support for reg32, reg16, reg8
+    pub fn adc_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
+        if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
+            return error.UnequalRegisterWidth;
+        }
+        switch (dst) {
+            .reg64 => {
+                try self.adc_reg64_reg64(dst.reg64, src.reg64);
+            },
+        }
+    }
+
+    /// TODO: add support for reg32, reg16, reg8
+    pub fn sbb_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
+        if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
+            return error.UnequalRegisterWidth;
+        }
+        switch (dst) {
+            .reg64 => {
+                try self.sbb_reg64_reg64(dst.reg64, src.reg64);
+            },
+        }
+    }
+
+    /// TODO: add support for reg32, reg16, reg8
+    pub fn and_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
+        if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
+            return error.UnequalRegisterWidth;
+        }
+        switch (dst) {
+            .reg64 => {
+                try self.and_reg64_reg64(dst.reg64, src.reg64);
+            },
+        }
+    }
+
     /// TODO: sub support for reg32, reg16, reg8
     pub fn sub_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
         if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
@@ -65,6 +113,30 @@ pub const Assembler = struct {
         switch (dst) {
             .reg64 => {
                 try self.sub_reg64_reg64(dst.reg64, src.reg64);
+            },
+        }
+    }
+
+    /// TODO: xor support for reg32, reg16, reg8
+    pub fn xor_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
+        if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
+            return error.UnequalRegisterWidth;
+        }
+        switch (dst) {
+            .reg64 => {
+                try self.xor_reg64_reg64(dst.reg64, src.reg64);
+            },
+        }
+    }
+
+    /// TODO: cmp support for reg32, reg16, reg8
+    pub fn cmp_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
+        if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
+            return error.UnequalRegisterWidth;
+        }
+        switch (dst) {
+            .reg64 => {
+                try self.cmp_reg64_reg64(dst.reg64, src.reg64);
             },
         }
     }
@@ -121,6 +193,54 @@ pub const Assembler = struct {
         try self.output_buf.append(self.allocator, mod_rm);
     }
 
+    // COMPLETED
+    /// dst = dst + src
+    fn add_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x01, dst, src);
+    }
+
+    // COMPLETED
+    /// dst = dst | src
+    fn or_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x09, dst, src);
+    }
+
+    // COMPLETED
+    /// add with carry flag -> dst + src + CF
+    fn adc_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x11, dst, src);
+    }
+
+    // COMPLETED
+    /// subtract with borrow flag -> dst - src - CF
+    fn sbb_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x19, dst, src);
+    }
+
+    // COMPLETED
+    /// and operation -> dst = dst & src
+    fn and_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x21, dst, src);
+    }
+
+    // COMPLETED
+    /// dst = dst - src
+    fn sub_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x29, dst, src);
+    }
+
+    // COMPLETED
+    /// dst = dst ^ src
+    fn xor_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x31, dst, src);
+    }
+
+    // COMPLETED
+    /// compares dst - src (flags only)
+    fn cmp_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x39, dst, src);
+    }
+
     /// alu reg64 reg64
     fn emit_alu_reg64_reg64(self: *Assembler, opcode: u8, dst: Reg64, src: Reg64) !void {
         const srcregid: u8 = @backingInt(src);
@@ -143,17 +263,5 @@ pub const Assembler = struct {
         // rm_bits -> dst & 7
         const mod_rm: u8 = 0xC0 | ((srcregid & 7) << 3 | (dstregid & 7));
         try self.output_buf.append(self.allocator, mod_rm);
-    }
-
-    // COMPLETED
-    /// dst = dst + src
-    fn add_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
-        try self.emit_alu_reg64_reg64(0x01, dst, src);
-    }
-
-    // COMPLETED
-    /// dst = dst - src
-    fn sub_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
-        try self.emit_alu_reg64_reg64(0x29, dst, src);
     }
 };

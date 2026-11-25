@@ -19,6 +19,7 @@ pub fn main(init: std.process.Init) !void {
     try assembler.mov_reg_imm(.{ .reg64 = .rax }, 60);
     try assembler.add_reg_reg(.{ .reg64 = .rdi }, .{ .reg64 = .r8 });
     try assembler.sub_reg_reg(.{ .reg64 = .rdi }, .{ .reg64 = .r9 });
+    try assembler.xor_reg_reg(.{ .reg64 = .rdi }, .{ .reg64 = .rdi });
     try assembler.syscall();
     const machine_code = assembler.assemble();
 
