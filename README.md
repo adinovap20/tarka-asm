@@ -29,9 +29,9 @@ Only, 64-bit register support is there yet! But I eventually plan to add all lat
 
 The upcoming tasks of this learning excercise are thus:
 
-[ ] Add label and jump support
-[ ] Stack related push, pop operations need to be added
-[ ] Memory operands need to be added so that the assembler can read and write to the stack slots
+- [ ] Add label and jump support
+- [ ] Stack related push, pop operations need to be added
+- [ ] Memory operands need to be added so that the assembler can read and write to the stack slots
 
 ## Build yourself
 
