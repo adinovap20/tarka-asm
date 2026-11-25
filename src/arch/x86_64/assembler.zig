@@ -34,13 +34,13 @@ pub const Assembler = struct {
     }
 
     /// TODO: need to add support for reg32, reg16, reg8
-    pub fn mov_reg_reg(self: *Assembler, src: Register, dst: Register) !void {
+    pub fn mov_reg_reg(self: *Assembler, dst: Register, src: Register) !void {
         if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
             return error.UnequalRegisterWidth;
         }
-        switch (src) {
+        switch (dst) {
             .reg64 => {
-                try self.mov_reg64_reg64(src.reg64, dst.reg64);
+                try self.mov_reg64_reg64(dst.reg64, src.reg64);
             },
         }
     }
@@ -74,7 +74,7 @@ pub const Assembler = struct {
 
     // COMPLETED
     /// mov a value from 1 64 bit register to other
-    fn mov_reg64_reg64(self: *Assembler, src: Reg64, dst: Reg64) !void {
+    fn mov_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
         const srcregid: u8 = @backingInt(src);
         const dstregid: u8 = @backingInt(dst);
 
