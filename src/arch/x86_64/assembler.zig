@@ -121,13 +121,12 @@ pub const Assembler = struct {
         try self.output_buf.append(self.allocator, mod_rm);
     }
 
-    // COMPLETED
-    /// dst = dst + src
-    fn add_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+    /// alu reg64 reg64
+    fn emit_alu_reg64_reg64(self: *Assembler, opcode: u8, dst: Reg64, src: Reg64) !void {
         const srcregid: u8 = @backingInt(src);
         const dstregid: u8 = @backingInt(dst);
 
-        // [REX prefix: 1 byte] [Opcode: 0x01] [ModR/M byte: 1 byte]
+        // [REX prefix: 1 byte] [Opcode] [ModR/M byte: 1 byte]
         // This is REX prefix - start with 0x48 for 64 bit operands,
         // if src >= 8 -> REX.R = 1 (add 4) & if dst >= 8 -> REX.B = 1 (add 1)
         var rex_prefix: u8 = 0x48;
@@ -135,8 +134,8 @@ pub const Assembler = struct {
         if (dstregid >= 8) rex_prefix += 1;
         try self.output_buf.append(self.allocator, rex_prefix);
 
-        // Opcode -> 0x01
-        try self.output_buf.append(self.allocator, 0x01);
+        // Opcode
+        try self.output_buf.append(self.allocator, opcode);
 
         // ModR/M byte -> 1 byte
         // mod = 3 -> register direct mode
@@ -147,27 +146,14 @@ pub const Assembler = struct {
     }
 
     // COMPLETED
+    /// dst = dst + src
+    fn add_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
+        try self.emit_alu_reg64_reg64(0x01, dst, src);
+    }
+
+    // COMPLETED
     /// dst = dst - src
     fn sub_reg64_reg64(self: *Assembler, dst: Reg64, src: Reg64) !void {
-        const srcregid: u8 = @backingInt(src);
-        const dstregid: u8 = @backingInt(dst);
-
-        // [REX prefix: 1 byte] [Opcode: 0x29] [ModR/M byte: 1 byte]
-        // This is REX prefix - start with 0x48 for 64 bit operands,
-        // if src >= 8 -> REX.R = 1 (add 4) & if dst >= 8 -> REX.B = 1 (add 1)
-        var rex_prefix: u8 = 0x48;
-        if (srcregid >= 8) rex_prefix += 4;
-        if (dstregid >= 8) rex_prefix += 1;
-        try self.output_buf.append(self.allocator, rex_prefix);
-
-        // Opcode -> 0x29
-        try self.output_buf.append(self.allocator, 0x29);
-
-        // ModR/M byte -> 1 byte
-        // mod = 3 -> register direct mode
-        // reg_bits -> src & 7
-        // rm_bits -> dst & 7
-        const mod_rm: u8 = 0xC0 | ((srcregid & 7) << 3 | (dstregid & 7));
-        try self.output_buf.append(self.allocator, mod_rm);
+        try self.emit_alu_reg64_reg64(0x29, dst, src);
     }
 };
