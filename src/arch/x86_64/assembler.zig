@@ -33,6 +33,18 @@ pub const Assembler = struct {
         }
     }
 
+    /// TODO: need to add support for reg32, reg16, reg8
+    pub fn mov_reg_reg(self: *Assembler, src: Register, dst: Register) !void {
+        if (std.meta.activeTag(src) != std.meta.activeTag(dst)) {
+            return error.UnequalRegisterWidth;
+        }
+        switch (src) {
+            .reg64 => {
+                try self.mov_reg64_reg64(src.reg64, dst.reg64);
+            },
+        }
+    }
+
     // COMPLETED
     /// Syscall instruction
     pub fn syscall(self: *Assembler) !void {
@@ -58,5 +70,30 @@ pub const Assembler = struct {
         var buf: [8]u8 = undefined;
         std.mem.writeInt(u64, &buf, imm, .little);
         try self.output_buf.appendSlice(self.allocator, &buf);
+    }
+
+    // COMPLETED
+    /// mov a value from 1 64 bit register to other
+    fn mov_reg64_reg64(self: *Assembler, src: Reg64, dst: Reg64) !void {
+        const srcregid: u8 = @backingInt(src);
+        const dstregid: u8 = @backingInt(dst);
+
+        // [REX prefix: 1 byte] [Opcode: 0x89] [ModR/M byte: 1 byte]
+        // This is REX prefix - start with 0x48 for 64 bit operands,
+        // if src >= 8 -> REX.R = 1 (add 4) & if dst >= 8 -> REX.B = 1 (add 1)
+        var rex_prefix: u8 = 0x48;
+        if (srcregid >= 8) rex_prefix += 4;
+        if (dstregid >= 8) rex_prefix += 1;
+        try self.output_buf.append(self.allocator, rex_prefix);
+
+        // Opcode -> 0x89
+        try self.output_buf.append(self.allocator, 0x89);
+
+        // ModR/M byte -> 1 byte
+        // mod = 3 -> register direct mode
+        // reg_bits -> src & 7
+        // rm_bits -> dst & 7
+        const mod_rm: u8 = 0xC0 | ((srcregid & 7) << 3 | (dstregid & 7));
+        try self.output_buf.append(self.allocator, mod_rm);
     }
 };

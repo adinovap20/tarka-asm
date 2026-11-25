@@ -13,8 +13,10 @@ pub fn main(init: std.process.Init) !void {
     var assembler = Assembler.init(init.gpa);
     defer assembler.deinit();
 
+    try assembler.mov_reg_imm(.{ .reg64 = .r8 }, 10);
     try assembler.mov_reg_imm(.{ .reg64 = .rdi }, 30);
     try assembler.mov_reg_imm(.{ .reg64 = .rax }, 60);
+    try assembler.mov_reg_reg(.{ .reg64 = .r8 }, .{ .reg64 = .rdi });
     try assembler.syscall();
     const machine_code = assembler.assemble();
 
